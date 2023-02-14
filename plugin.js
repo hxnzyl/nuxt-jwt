@@ -103,6 +103,9 @@ function JwtPlugin(options) {
 }
 
 JwtPlugin.prototype = {
+    isLogin() {
+        return $nuxt.$store.state.jwt.accessToken ? true :false
+    },
 	login(data = {}) {
 		return $nuxt.$store.dispatch('jwt/login', data)
 	},
@@ -110,7 +113,7 @@ JwtPlugin.prototype = {
 		return $nuxt.$store.dispatch('jwt/logout', data)
 	},
 	redirect(redirect) {
-		if ($nuxt.$store.state.jwt.accessToken) return false
+		if (this.isLogin()) return false
 		let loginUrl = this.options.loginUrl + '?redirect=' + encodeURIComponent($nuxt.$route.fullPath)
 		redirect ? redirect(loginUrl) : $nuxt.$router.push(loginUrl)
 		return true
