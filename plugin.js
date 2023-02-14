@@ -1,5 +1,3 @@
-import defu from 'defu'
-
 const state = {
 	accessToken: '',
 	refreshToken: '',
@@ -69,11 +67,11 @@ const actions = {
 			this.$axios
 				.post('<%= options.loginApi %>', data)
 				.then((res) => {
-					if ((checkData = checker ? checkData(res.data) : res.data))
-						dispatch('updateLoginData', checkData), redirect && this.$router.push(decodeURIComponent(redirect)), resolve(true, checkData)
-					else resolve(false, checkData)
+					if ((checkData = (checkData && checkData(res.data)) || res.data))
+						dispatch('updateLoginData', checkData), redirect && $nuxt.$router.push(decodeURIComponent(redirect)), resolve([true, checkData])
+					else resolve([false, checkData])
 				})
-				.catch((error) => resolve(false, error))
+				.catch((error) => resolve([false, error]))
 		})
 	},
 	// <% } %>
@@ -87,14 +85,14 @@ const actions = {
 		// <% if (!options.logoutApi) { %>
 		let res = dispatch('clearLoginData')
 		reload && location.reload()
-		return res
+		return [true, res]
 		// <% } %>
 		// <% if (options.logoutApi) { %>
 		return new Promise((resolve, reject) => {
 			this.$axios
 				.post('<%= options.logoutApi %>', data)
-				.then(() => (dispatch('clearLoginData'), reload && location.reload(), resolve(checkData)))
-				.catch((error) => reject(error))
+				.then((res) => (dispatch('clearLoginData'), reload && location.reload(), resolve([true, res.data])))
+				.catch((error) => reject([false, error]))
 		})
 		// <% } %>
 	}
@@ -123,12 +121,8 @@ export default function (ctx, inject) {
 	// Register Store
 	ctx.store.registerModule('jwt', { namespaced: true, state, mutations, actions })
 	ctx.store.dispatch('jwt/nuxtClientInit')
-	// runtimeConfig
-	const runtimeConfig = (ctx.$config && ctx.$config.jwt) || {}
-	// Combine Options
-	const options = defu(runtimeConfig, <%= JSON.stringify(options, null, 4) %>)
 	// Create Instance
-	const $jwt = new JwtPlugin(options)
+	const $jwt = new JwtPlugin(<%= JSON.stringify(options, null, 4) %>)
 	ctx.$jwt = $jwt
 	inject('jwt', $jwt)
 }

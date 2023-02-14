@@ -1,23 +1,34 @@
 const { resolve } = require('path')
 const { defu } = require('defu')
 
-module.exports = function nuxtJwtModule(moduleOptions = {}) {
-	const { jwt = {} } = this.options
+const logger = consola.withScope('nuxt:jwt')
 
-	//环境变量参数
-	const options = defu(moduleOptions, jwt, {
-		loginUrl: process.env.NUXT_JWT_LOGIN_URL || '/login',
-		loginApi: process.env.NUXT_JWT_LOGIN_API || '',
-		logoutApi: process.env.NUXT_JWT_LOGOUT_API || ''
+module.exports = function nuxtJwtModule(_moduleOptions) {
+	const { nuxt } = this
+
+	// Combine options
+	const moduleOptions = {
+		...nuxt.options.jwt,
+		..._moduleOptions,
+		...(nuxt.options.runtimeConfig && nuxt.options.runtimeConfig.jwt)
+	}
+
+	// Apply defaults
+	const options = defu(moduleOptions, {
+		loginUrl: process.env.JWT_LOGIN_URL || '/login',
+		loginApi: process.env.JWT_LOGIN_API || '',
+		logoutApi: process.env.JWT_LOGOUT_API || ''
 	})
 
 	// Add plugin
 	this.addPlugin({
 		src: resolve(__dirname, './plugin.js'),
-		ssr: false,
 		fileName: 'nuxt-jwt.js',
 		options
 	})
+
+	logger.debug(`loginUrl: ${options.loginUrl}`)
+	logger.debug(`loginApi: ${options.loginApi}`)
 }
 
 module.exports.meta = require('./package.json')

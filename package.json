@@ -17,6 +17,8 @@
 	},
 	"homepage": "https://github.com/hxnzyl/nuxt-jwt#readme",
 	"dependencies": {
-		"defu": "^6.1.2"
+		"defu": "^6.1.2",
+		"ali-oss": "^6.17.1",
+		"mediainfo.js": "^0.1.9"
 	}
 }
