@@ -81,19 +81,17 @@ const actions = {
 	 * @param {Vuex.Store} param0
 	 * @returns {Promise}
 	 */
-	logout({ dispatch }, { data, reload }) {
-		// <% if (!options.logoutApi) { %>
-		let res = dispatch('clearLoginData')
-		reload && location.reload()
-		return [true, res]
-		// <% } %>
+	logout({ dispatch }, data) {
 		// <% if (options.logoutApi) { %>
 		return new Promise((resolve, reject) => {
 			this.$axios
 				.post('<%= options.logoutApi %>', data)
-				.then((res) => (dispatch('clearLoginData'), reload && location.reload(), resolve([true, res.data])))
+				.then((res) => (dispatch('clearLoginData'), resolve([true, res.data])))
 				.catch((error) => reject([false, error]))
 		})
+		// <% } %>
+		// <% if (!options.logoutApi) { %>
+		return dispatch('clearLoginData')
 		// <% } %>
 	}
 }
@@ -103,13 +101,22 @@ function JwtPlugin(options) {
 }
 
 JwtPlugin.prototype = {
-    isLogin() {
-        return $nuxt.$store.state.jwt.accessToken ? true :false
-    },
-	login(data = {}) {
+	isLogin() {
+		return this.getAccessToken() ? true : false
+	},
+	getAccessToken() {
+		return $nuxt.$store.state.jwt.accessToken
+	},
+	getRefreshToken() {
+		return $nuxt.$store.state.jwt.refreshToken
+	},
+	getUserData() {
+		return $nuxt.$store.state.jwt.userData
+	},
+	login(data) {
 		return $nuxt.$store.dispatch('jwt/login', data)
 	},
-	logout(data = {}) {
+	logout(data) {
 		return $nuxt.$store.dispatch('jwt/logout', data)
 	},
 	redirect(redirect) {
@@ -121,9 +128,15 @@ JwtPlugin.prototype = {
 }
 
 export default function (ctx, inject) {
+	const { store, $axios, redirect } = ctx
 	// Register Store
-	ctx.store.registerModule('jwt', { namespaced: true, state, mutations, actions })
-	ctx.store.dispatch('jwt/nuxtClientInit')
+	store.registerModule('jwt', { namespaced: true, state, mutations, actions })
+	store.dispatch('jwt/nuxtClientInit')
+	// Axios interceptors
+	// set Token
+	$axios.onRequest((config) => (window.$nuxt && $axios.setToken(ctx.$jwt.getAccessToken()), config))
+	// no Permission
+	$axios.onError((error) => window.$nuxt && error.response && error.response.status == 401 && redirect('/'))
 	// Create Instance
 	const $jwt = new JwtPlugin(<%= JSON.stringify(options, null, 4) %>)
 	ctx.$jwt = $jwt

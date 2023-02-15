@@ -1,6 +1,6 @@
 {
 	"name": "nuxt-jwt",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Nuxt JS JWT module~",
 	"main": "module.js",
 	"repository": {
@@ -20,5 +20,8 @@
 		"defu": "^6.1.2",
 		"ali-oss": "^6.17.1",
 		"mediainfo.js": "^0.1.9"
+	},
+	"devDependencies": {
+		"@nuxtjs/axios": "^5.13.6"
 	}
 }
