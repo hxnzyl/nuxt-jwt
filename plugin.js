@@ -27,6 +27,16 @@ const actions = {
 		commit('SET_USER_DATA', JSON.parse(localStorage.getItem('userData')) || null)
 	},
 	/**
+	 * 更新用户信息
+	 *
+	 * @param {Vuex.Store} param0
+	 * @param {Object}
+	 */
+	updateUserData({ commit }, userData) {
+		commit('SET_USER_DATA', { ...userData })
+		localStorage.setItem('userData', JSON.stringify(userData))
+	},
+	/**
 	 * 更新登录数据
 	 *
 	 * @param {Vuex.Store} param0
@@ -35,7 +45,7 @@ const actions = {
 	updateLoginData({ commit }, { accessToken, refreshToken, userData }) {
 		commit('SET_ACCESS_TOKEN', accessToken)
 		commit('SET_REFRESH_TOKEN', refreshToken)
-		commit('SET_USER_DATA', userData)
+		commit('SET_USER_DATA', { ...userData })
 		localStorage.setItem('accessToken', accessToken)
 		localStorage.setItem('refreshToken', refreshToken)
 		localStorage.setItem('userData', JSON.stringify(userData))
