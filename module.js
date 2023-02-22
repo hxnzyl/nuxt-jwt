@@ -1,22 +1,29 @@
 const { resolve } = require('path')
 const { defu } = require('defu')
 
-const logger = consola.withScope('nuxt:jwt')
+const meta = require('./package.json')
 
 module.exports = function nuxtJwtModule(_moduleOptions) {
-	const { nuxt } = this
+	const { runtimeConfig, jwt = {} } = this.options
 
 	// Combine options
 	const moduleOptions = {
-		...nuxt.options.jwt,
+		...jwt,
 		..._moduleOptions,
-		...(nuxt.options.runtimeConfig && nuxt.options.runtimeConfig.jwt)
+		...(runtimeConfig && runtimeConfig.jwt)
 	}
 
 	// Apply defaults
 	const options = defu(moduleOptions, {
+		//登录地址，必填
 		loginUrl: process.env.JWT_LOGIN_URL || '/login',
+		//未登录时重定向地址，必填
+		noLoginRedirect: process.env.JWT_NO_LOGIN_REDIRECT || '/',
+		//未登录时后端接口返回的状态，必填
+		noLoginHttpStatus: process.env.JWT_NO_LOGIN_HTTP_STATUS || 401,
+		//登录接口地址，选填
 		loginApi: process.env.JWT_LOGIN_API || '',
+		//登出接口地址，选填
 		logoutApi: process.env.JWT_LOGOUT_API || ''
 	})
 
@@ -27,8 +34,7 @@ module.exports = function nuxtJwtModule(_moduleOptions) {
 		options
 	})
 
-	logger.debug(`loginUrl: ${options.loginUrl}`)
-	logger.debug(`loginApi: ${options.loginApi}`)
+	consola.info(meta.name + ': v' + meta.version)
 }
 
-module.exports.meta = require('./package.json')
+module.exports.meta = meta

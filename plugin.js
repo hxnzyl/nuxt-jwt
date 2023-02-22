@@ -24,6 +24,7 @@ const actions = {
 	nuxtClientInit({ commit }) {
 		commit('SET_ACCESS_TOKEN', localStorage.getItem('accessToken') || '')
 		commit('SET_REFRESH_TOKEN', localStorage.getItem('refreshToken') || '')
+		console.log(localStorage.getItem('userData'))
 		commit('SET_USER_DATA', JSON.parse(localStorage.getItem('userData')) || null)
 	},
 	/**
@@ -64,7 +65,6 @@ const actions = {
 		localStorage.removeItem('refreshToken')
 		localStorage.removeItem('userData')
 	},
-	// <% if (options.loginApi) { %>
 	/**
 	 * 登录
 	 *
@@ -72,19 +72,27 @@ const actions = {
 	 * @param {Object} param1
 	 * @returns {Promise}
 	 */
-	login({ dispatch }, { data, redirect, checkData }) {
+	login({ dispatch }, _data) {
+		// <% if (options.loginApi) { %>
+		let { data, redirect, checkData } = _data
 		return new Promise((resolve) => {
 			this.$axios
 				.post('<%= options.loginApi %>', data)
 				.then((res) => {
-					if ((checkData = (checkData && checkData(res.data)) || res.data))
-						dispatch('updateLoginData', checkData), redirect && $nuxt.$router.push(decodeURIComponent(redirect)), resolve([true, checkData])
-					else resolve([false, checkData])
+					let checkResult = checkData ? checkData(res.data) : res.data
+					if (checkResult && checkResult.accessToken)
+						dispatch('updateLoginData', checkResult),
+							redirect && $nuxt.$router.push(decodeURIComponent(redirect)),
+							resolve([true, checkResult])
+					else resolve([false, checkResult])
 				})
 				.catch((error) => resolve([false, error]))
 		})
+		// <% } %>
+		// <% if (!options.loginApi) { %>
+		return dispatch('updateLoginData', _data)
+		// <% } %>
 	},
-	// <% } %>
 	/**
 	 * 登出
 	 *
@@ -143,12 +151,21 @@ export default function (ctx, inject) {
 	store.registerModule('jwt', { namespaced: true, state, mutations, actions })
 	store.dispatch('jwt/nuxtClientInit')
 	// Axios interceptors
-	// set Token
-	$axios.onRequest((config) => (window.$nuxt && $axios.setToken(ctx.$jwt.getAccessToken()), config))
-	// no Permission
-	$axios.onError((error) => window.$nuxt && error.response && error.response.status == 401 && redirect('/'))
+	// request: set Token
+	$axios.onRequest((config) => {
+		if (typeof $nuxt === 'undefined') return config
+		$axios.setToken(ctx.$jwt.getAccessToken())
+		return config
+	})
+	// response: 401 -> redirect
+	$axios.onError((error) => {
+		if (typeof $nuxt === 'undefined') return error
+		if (error.response && error.response.status + '' === '<%= options.noLoginHttpStatus %>')
+			return ctx.$jwt.logout(), redirect('<%= options.noLoginRedirect %>')
+		return error
+	})
 	// Create Instance
-	const $jwt = new JwtPlugin(<%= JSON.stringify(options, null, 4) %>)
+	const $jwt = new JwtPlugin(JSON.parse('<%= JSON.stringify(options) %>'))
 	ctx.$jwt = $jwt
 	inject('jwt', $jwt)
 }
