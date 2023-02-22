@@ -24,7 +24,6 @@ const actions = {
 	nuxtClientInit({ commit }) {
 		commit('SET_ACCESS_TOKEN', localStorage.getItem('accessToken') || '')
 		commit('SET_REFRESH_TOKEN', localStorage.getItem('refreshToken') || '')
-		console.log(localStorage.getItem('userData'))
 		commit('SET_USER_DATA', JSON.parse(localStorage.getItem('userData')) || null)
 	},
 	/**
