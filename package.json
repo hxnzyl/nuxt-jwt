@@ -1,6 +1,6 @@
 {
 	"name": "nuxt-jwt",
-	"version": "1.0.5",
+	"version": "1.0.51",
 	"description": "Nuxt JS JWT module~",
 	"main": "module.js",
 	"repository": {

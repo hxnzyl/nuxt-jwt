@@ -1,7 +1,7 @@
 const state = {
 	accessToken: '',
 	refreshToken: '',
-	userData: null
+	userData: {}
 }
 
 const mutations = {
@@ -59,7 +59,7 @@ const actions = {
 	clearLoginData({ commit }) {
 		commit('SET_ACCESS_TOKEN', '')
 		commit('SET_REFRESH_TOKEN', '')
-		commit('SET_USER_DATA', null)
+		commit('SET_USER_DATA', {})
 		localStorage.removeItem('accessToken')
 		localStorage.removeItem('refreshToken')
 		localStorage.removeItem('userData')
